@@ -15,5 +15,7 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
+    "react-hooks/exhaustive-deps": "off", // 关闭规则
+    "@typescript-eslint/no-explicit-any": "off"
   },
 }
