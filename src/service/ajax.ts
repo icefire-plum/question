@@ -3,7 +3,7 @@ import { message } from "antd";
 import axios from "axios";
 
 const instance = axios.create({
-  timeout: 1000,
+  timeout: 6000,
 });
 
 instance.interceptors.request.use(
@@ -35,3 +35,5 @@ export type ResType = {
 export type ResDataType = {
   [key: string]: any;
 };
+
+export default instance;
