@@ -4,6 +4,8 @@ import Logo from "@/components/Logo";
 import UserInfo from "@/components/UserInfo";
 import useLoadUserData from "@/hooks/useLoadUserData";
 import { Outlet } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { MainLayoutContext } from "@/contexts/mainLayoutContext";
 
 const { Header, Content, Footer } = Layout;
 
@@ -26,30 +28,39 @@ const StyleFooter = styled(Footer)`
 `;
 const MainLayout = () => {
   const { waitingUserData } = useLoadUserData();
+  const mainLayoutRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    mainLayoutRef.current?.addEventListener("scroll", () => {
+      console.log("ddd");
+    });
+  }, []);
+
   return (
-    <Layout>
-      <StyleHeader>
-        <LeftDiv>
-          <Logo />
-        </LeftDiv>
-        <RightDiv>
-          <UserInfo />
-        </RightDiv>
-      </StyleHeader>
-      <ContentLayout>
-        <Content>
-          {waitingUserData ? (
-            <div style={{ textAlign: "center", marginTop: "60px" }}>
-              {" "}
-              <Spin />
-            </div>
-          ) : (
-            <Outlet />
-          )}
-        </Content>
-      </ContentLayout>
-      <StyleFooter>question</StyleFooter>
-    </Layout>
+    <MainLayoutContext.Provider value={mainLayoutRef}>
+      <Layout ref={mainLayoutRef}>
+        <StyleHeader>
+          <LeftDiv>
+            <Logo />
+          </LeftDiv>
+          <RightDiv>
+            <UserInfo />
+          </RightDiv>
+        </StyleHeader>
+        <ContentLayout>
+          <Content>
+            {waitingUserData ? (
+              <div style={{ textAlign: "center", marginTop: "60px" }}>
+                {" "}
+                <Spin />
+              </div>
+            ) : (
+              <Outlet />
+            )}
+          </Content>
+        </ContentLayout>
+        <StyleFooter>question</StyleFooter>
+      </Layout>
+    </MainLayoutContext.Provider>
   );
 };
 

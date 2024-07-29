@@ -34,3 +34,11 @@ export async function duplicateQuestionService(
   const data = (await axios.post(url)) as ResDataType;
   return data;
 }
+
+export async function deleteQuestionsService(
+  ids: string[],
+): Promise<ResDataType> {
+  const url = "/api/question";
+  const data = (await axios.delete(url, { data: { ids } })) as ResDataType;
+  return data;
+}

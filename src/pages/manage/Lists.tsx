@@ -1,42 +1,41 @@
-import styled from "styled-components";
-import { Typography } from "antd";
+import { Empty, Spin, Typography } from "antd";
 import ListSearch from "@/components/ListSearch";
-import { useRequest, useTitle } from "ahooks";
-import { useEffect, useState } from "react";
+import { useDebounceFn, useRequest, useTitle } from "ahooks";
+import { useEffect, useMemo, useRef, useState } from "react";
 import QuestionCard from "@/components/QuestionCard";
 import { getQuestionListService } from "@/service/question";
+import { LIST_PAGE_SIZE, LIST_SEARCH_PARAM_KEY } from "@/constant";
+import { useSearchParams } from "react-router-dom";
+import { StyledContent, StyledFooter, StyledHeader } from "./StyledComponents";
 
 const { Title } = Typography;
 
-const StyledHeader = styled.div`
-  display: flex;
-  margin-bottom: 20px;
-
-  .left {
-    flex: 1;
-  }
-
-  .right {
-    flex: 1;
-    text-align: right;
-  }
-`;
-const StyledContent = styled.div`
-  margin-bottom: 20px;
-`;
-const StyledFooter = styled.div`
-  text-align: center;
-`;
 const List = () => {
   useTitle("问卷-我的问卷");
 
+  const [started, setStarted] = useState(false);
   const [list, setList] = useState([]);
   const [total, setTotal] = useState(0);
-  console.log(total);
   const [page, setPage] = useState(1);
+  const haveMoreData = total > list.length;
 
-  const { run: load } = useRequest(
-    async () => await getQuestionListService({}),
+  const [searchParams] = useSearchParams();
+  const keyword = searchParams.get(LIST_SEARCH_PARAM_KEY) || "";
+
+  useEffect(() => {
+    setStarted(false);
+    setPage(1);
+    setList([]);
+    setTotal(0);
+  }, [keyword]);
+
+  const { run: load, loading } = useRequest(
+    async () =>
+      await getQuestionListService({
+        page,
+        pageSize: LIST_PAGE_SIZE,
+        keyword,
+      }),
     {
       manual: true,
       onSuccess(res) {
@@ -47,9 +46,42 @@ const List = () => {
       },
     },
   );
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { run: tryLoadMore } = useDebounceFn(
+    () => {
+      const elem = containerRef.current;
+      if (elem == null) {
+        return;
+      }
+      const domRect = elem.getBoundingClientRect();
+      if (domRect == null) return;
+      const { bottom } = domRect;
+      if (bottom <= document.body.clientHeight) {
+        load();
+        setStarted(true);
+      }
+    },
+    { wait: 1000 },
+  );
+
   useEffect(() => {
-    load();
-  }, []);
+    tryLoadMore();
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (haveMoreData) {
+      window.addEventListener("scroll", tryLoadMore);
+    }
+    return () => window.removeEventListener("scroll", tryLoadMore);
+  }, [searchParams, haveMoreData]);
+
+  const LoadMoreCotentElem = useMemo(() => {
+    if (!started || loading) return <Spin />;
+    if (total === 0) return <Empty description="暂无数据" />;
+    if (!haveMoreData) return <span>没有更多数据</span>;
+    return <span>开始加载下一页</span>;
+  }, [started, loading, haveMoreData]);
   return (
     <>
       <StyledHeader>
@@ -67,7 +99,9 @@ const List = () => {
             return <QuestionCard key={_id} {...q} />;
           })}
       </StyledContent>
-      <StyledFooter>load more</StyledFooter>
+      <StyledFooter>
+        <div ref={containerRef}>{LoadMoreCotentElem}</div>
+      </StyledFooter>
     </>
   );
 };
