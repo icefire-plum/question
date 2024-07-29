@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import userReducer from "./userReducer";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import userReducer from "./userReducer";
+import pageInfoReducer from "./pageInfoReducer";
 
 const store = configureStore({
   reducer: {
     user: userReducer,
+    pageInfo: pageInfoReducer,
   },
 });
 

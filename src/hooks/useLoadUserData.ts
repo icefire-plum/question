@@ -11,7 +11,7 @@ function useLoadUserData() {
   const { run } = useRequest(getUserInfoService, {
     manual: true,
     onSuccess: (res) => {
-      const { username, nickname } = res;
+      const { username, nickname } = res.data.data;
       dispath(loginReducer({ username, nickname }));
     },
     onFinally() {

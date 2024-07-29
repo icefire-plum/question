@@ -18,7 +18,7 @@ export const userSlice = createSlice({
       state: UserStateType,
       action: PayloadAction<UserStateType>,
     ) => {
-      state = action.payload;
+      return action.payload;
     },
     logoutReducer: () => INIT_STATE,
   },
